@@ -1,7 +1,7 @@
 import { getStore } from "@netlify/blobs";
 
 export default async (req, context) => {
-  // 1. Bloqueia qualquer método que não seja POST (vido do Power Automate)
+  // 1. Bloqueia qualquer método que não seja POST
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Método não permitido" }), { 
       status: 405,
@@ -10,10 +10,12 @@ export default async (req, context) => {
   }
 
   try {
-    // 2. Extrai o nome do arquivo enviado pelo cabeçalho customizado x-filename
-    const fileName = req.headers.get("x-filename");
+    // 2. Extrai o nome do arquivo diretamente dos parâmetros da URL (Query String)
+    const { searchParams } = new URL(req.url);
+    const fileName = searchParams.get("file");
+    
     if (!fileName) {
-      return new Response(JSON.stringify({ error: "Cabeçalho x-filename ausente" }), { 
+      return new Response(JSON.stringify({ error: "Parâmetro 'file' ausente na URL" }), { 
         status: 400, 
         headers: { "Content-Type": "application/json" }
       });
