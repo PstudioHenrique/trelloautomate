@@ -31,12 +31,20 @@ export default async (req, context) => {
     }
 
     // 4. Conecta à sua área de armazenamento privada do Netlify Blobs
-    const store = getStore("trello-temp-attachments");
+        // Identifica a extensão correta para gravar o metadado do blob antes de salvar
+    let contentType = "image/png";
+    const lowerName = fileName.toLowerCase();
+    if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
+      contentType = "image/jpeg";
+    } else if (lowerName.endsWith(".gif")) {
+      contentType = "image/gif";
+    }
 
-    // 5. Salva o arquivo binário usando o nome dele como chave de busca
+    // Salva o arquivo com o contentType dinâmico
     await store.set(fileName, fileBuffer, {
-      metadata: { contentType: "image/png" }
+      metadata: { contentType: contentType }
     });
+
 
     // 6. Descobre dinamicamente a URL base do seu site publicado no Netlify
     const siteUrl = process.env.URL || new URL(req.url).origin;
