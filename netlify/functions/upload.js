@@ -31,11 +31,30 @@ export default async (req, context) => {
     }
 
     // 4. Conecta à sua área de armazenamento privada do Netlify Blobs
-        // Identifica a extensão correta para gravar o metadado do blob antes de salvar
+    // Identifica a extensão correta para gravar o metadado do blob antes de salvar
     let contentType = "image/png";
     const lowerName = fileName.toLowerCase();
     if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
       contentType = "image/jpeg";
+    } else if (lowerName.endsWith(".gif")) {
+      contentType = "image/gif";
+    }
+
+    // Salva o arquivo com o contentType dinâmico
+    await store.set(fileName, fileBuffer, {
+      metadata: { contentType: contentType }
+    });
+
+      contentType = "image/jpeg";
+    } else if (lowerName.endsWith(".gif")) {
+      contentType = "image/gif";
+    }
+
+    // Salva o arquivo com o contentType dinâmico
+    await store.set(fileName, fileBuffer, {
+      metadata: { contentType: contentType }
+    });
+
     } else if (lowerName.endsWith(".gif")) {
       contentType = "image/gif";
     }
