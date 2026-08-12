@@ -1,4 +1,7 @@
 exports.handler = async (event) => {
+  console.log("Método:", event.httpMethod);
+  console.log("Content-Type:", event.headers["content-type"]);
+
   return {
     statusCode: 200,
     headers: {
@@ -6,7 +9,9 @@ exports.handler = async (event) => {
     },
     body: JSON.stringify({
       success: true,
-      message: "Upload function funcionando"
+      method: event.httpMethod,
+      contentType: event.headers["content-type"] || null,
+      receivedBody: !!event.body
     })
   };
 };
