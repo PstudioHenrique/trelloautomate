@@ -6,19 +6,19 @@ export default async (req, context) => {
   }
 
   try {
-    // Captura o nome do arquivo direto do final do caminho da URL (ex: /download/foto.png)
-    const urlParts = req.url.split("/");
-    const fileName = decodeURIComponent(urlParts[urlParts.length - 1].split("?")[0]);
+    // Lê o parâmetro de volta usando searchParams (Evita o travamento do Netlify)
+    const { searchParams } = new URL(req.url);
+    const fileName = searchParams.get("file");
 
-    if (!fileName || fileName === "download") {
-      return new Response(JSON.stringify({ error: "Nome do arquivo inválido" }), { status: 400 });
+    if (!fileName) {
+      return new Response(JSON.stringify({ error: "Parâmetro 'file' ausente" }), { status: 400 });
     }
 
     const store = getStore("trello-temp-attachments");
     const blobData = await store.get(fileName, { type: "arrayBuffer" });
 
     if (!blobData) {
-      return new Response(JSON.stringify({ error: "Arquivo não encontrado no storage" }), { status: 404 });
+      return new Response(JSON.stringify({ error: "Arquivo não encontrado" }), { status: 404 });
     }
 
     let contentType = "image/png";
