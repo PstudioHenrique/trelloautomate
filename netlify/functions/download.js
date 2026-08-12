@@ -1,7 +1,6 @@
 import { getStore } from "@netlify/blobs";
 
 export default async (req, context) => {
-  // 1. Permite apenas requisições do tipo GET (que é como o Trello vai acessar a URL)
   if (req.method !== "GET") {
     return new Response(JSON.stringify({ error: "Método não permitido" }), { 
       status: 405,
@@ -10,7 +9,6 @@ export default async (req, context) => {
   }
 
   try {
-    // 2. Extrai o nome do arquivo dos parâmetros da URL (?file=nome_do_arquivo.png)
     const { searchParams } = new URL(req.url);
     const fileName = searchParams.get("file");
 
@@ -21,10 +19,7 @@ export default async (req, context) => {
       });
     }
 
-    // 3. Conecta à mesma área de armazenamento do Netlify Blobs
     const store = getStore("trello-temp-attachments");
-    
-    // 4. Busca o arquivo binário armazenado
     const blobData = await store.get(fileName, { type: "arrayBuffer" });
 
     if (!blobData) {
@@ -34,13 +29,24 @@ export default async (req, context) => {
       });
     }
 
-    // 5. Devolve o arquivo binário puro com o cabeçalho de imagem correto para o Trello
+    // Identifica dinamicamente a extensão para devolver o Content-Type perfeito para o Trello
+    let contentType = "image/png"; // Padrão
+    const lowerName = fileName.toLowerCase();
+    if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) {
+      contentType = "image/jpeg";
+    } else if (lowerName.endsWith(".gif")) {
+      contentType = "image/gif";
+    } else if (lowerName.endsWith(".webp")) {
+      contentType = "image/webp";
+    }
+
+    // Retorna o arquivo binário com cabeçalhos limpos de exibição em linha (inline)
     return new Response(blobData, {
       status: 200,
       headers: {
-        "Content-Type": "image/png",
-        "Content-Disposition": `inline; filename="${fileName}"`,
-        "Cache-Control": "public, max-age=60" // Cache curto para ajudar o Trello no download
+        "Content-Type": contentType,
+        "Content-Disposition": "inline", 
+        "Cache-Control": "public, max-age=120" // Dá tempo extra para o Trello indexar a imagem
       }
     });
 
